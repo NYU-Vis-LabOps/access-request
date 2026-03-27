@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Access Request Database View</title>
+    <style>
+      body {
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+        margin: 0;
+        background: #f8fafc;
+        color: #0f172a;
+      }
+
+      header {
+        background: #0f172a;
+        color: #fff;
+        padding: 0.9rem 1.2rem;
+      }
+
+      main {
+        padding: 1rem 1.2rem 1.5rem;
+      }
+
+      .filters {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        margin-bottom: 0.8rem;
+      }
+
+      input,
+      button {
+        padding: 0.45rem 0.6rem;
+        border-radius: 0.4rem;
+        border: 1px solid #cbd5e1;
+      }
+
+      button {
+        cursor: pointer;
+        border: none;
+        background: #57068c;
+        color: #fff;
+      }
+
+      .meta {
+        color: #475569;
+        font-size: 0.86rem;
+        margin-bottom: 0.7rem;
+      }
+
+      .sheet {
+        overflow: auto;
+        border: 1px solid #e2e8f0;
+        border-radius: 0.5rem;
+        background: #fff;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 1100px;
+      }
+
+      th,
+      td {
+        border-bottom: 1px solid #e2e8f0;
+        padding: 0.45rem 0.55rem;
+        text-align: left;
+        font-size: 0.85rem;
+        vertical-align: top;
+      }
+
+      th {
+        background: #f1f5f9;
+        position: sticky;
+        top: 0;
+      }
+
+      .row-approved {
+        background: #ecfdf3;
+      }
+    </style>
+  </head>
+  <body>
+    <header>Access Request DB View</header>
+    <main>
+      <form class="filters" method="get" action="{{ url_for('database_view') }}">
+        <input
+          type="email"
+          name="account_email"
+          value="{{ account_email }}"
+          placeholder="account email (for role scope)"
+        />
+        <input type="text" name="q" value="{{ q }}" placeholder="search..." />
+        <button type="submit">Load</button>
+      </form>
+
+      <div class="meta">
+        Role: <strong>{{ role }}</strong> · Total rows: {{ requests|length }} ·
+        Approved rows are highlighted in green.
+      </div>
+
+      <div class="sheet">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Name</th>
+              <th>Email</th>
+              <th>History count</th>
+              <th>Building</th>
+              <th>Room</th>
+              <th>Start</th>
+              <th>End</th>
+              <th>Type</th>
+              <th>Status</th>
+              {% if role == "admin" %}
+              <th>PI</th>
+              <th>Approvers</th>
+              <th>Department</th>
+              <th>Last action by</th>
+              <th>Last note / reason</th>
+              {% endif %}
+              <th>Created</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in requests %}
+            <tr class="{% if r.status == RequestStatus.APPROVED.value %}row-approved{% endif %}">
+              <td>{{ r.id }}</td>
+              <td>{{ (r.first_name ~ " " ~ r.last_name).strip() if (r.first_name or r.last_name) else r.name }}</td>
+              <td>{{ r.applicant_email }}</td>
+              <td>{{ applicant_counts.get(r.applicant_email, 0) }}</td>
+              <td>{{ r.building }}</td>
+              <td>{{ r.room_numbers }}</td>
+              <td>{{ r.access_start_date }}</td>
+              <td>{{ r.access_end_date }}</td>
+              <td>{{ r.access_type }}</td>
+              <td>{{ r.status }}</td>
+              {% if role == "admin" %}
+              <td>{{ r.pi_email or "-" }}</td>
+              <td>{{ r.approver_emails or "-" }}</td>
+              <td>{{ r.departments or "-" }}</td>
+              <td>{{ r.last_action_by or "-" }}</td>
+              <td>{{ r.last_action_note or "-" }}</td>
+              {% endif %}
+              <td>{{ r.created_at.strftime("%Y-%m-%d %H:%M") if r.created_at else "" }}</td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="16" style="text-align: center">No rows found.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </body>
+</html>

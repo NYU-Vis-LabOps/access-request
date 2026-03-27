@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Approver Portal - Building Access</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      :root {
+        --accent: #57068c;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        background: radial-gradient(circle at top left, #f5f3ff, #eff6ff);
+        color: #111827;
+      }
+
+      header {
+        background: #0f172a;
+        color: white;
+        padding: 0.9rem 2.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .brand {
+        font-weight: 600;
+        letter-spacing: 0.03em;
+      }
+
+      .brand span {
+        opacity: 0.8;
+        font-weight: 400;
+        margin-left: 0.5rem;
+        font-size: 0.9rem;
+      }
+
+      main {
+        flex: 1;
+        padding: 1.75rem 1.5rem 2.5rem;
+        display: flex;
+        justify-content: center;
+      }
+
+      .shell {
+        width: 100%;
+        max-width: 1120px;
+      }
+
+      h1 {
+        margin: 0 0 0.45rem;
+        font-size: 1.55rem;
+      }
+
+      .subtitle {
+        margin: 0 0 1.15rem;
+        font-size: 0.9rem;
+        color: #6b7280;
+      }
+
+      .filters {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+        align-items: center;
+      }
+
+      input,
+      select {
+        padding: 0.45rem 0.6rem;
+        border-radius: 0.4rem;
+        border: 1px solid #d1d5db;
+        font-size: 0.9rem;
+        background: #f9fafb;
+      }
+
+      input:focus,
+      select:focus {
+        outline: none;
+        border-color: var(--accent);
+        background: white;
+        box-shadow: 0 0 0 1px rgba(87, 6, 140, 0.25);
+      }
+
+      button {
+        background: linear-gradient(135deg, var(--accent), #7c3aed);
+        border: none;
+        color: white;
+        padding: 0.4rem 0.95rem;
+        border-radius: 999px;
+        font-size: 0.85rem;
+        cursor: pointer;
+        font-weight: 500;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 0.75rem;
+        font-size: 0.9rem;
+        background: white;
+        border-radius: 0.75rem;
+        overflow: hidden;
+        box-shadow: 0 16px 40px rgba(15, 23, 42, 0.12);
+      }
+
+      th,
+      td {
+        padding: 0.5rem 0.75rem;
+        border-bottom: 1px solid #e5e7eb;
+        text-align: left;
+        vertical-align: top;
+      }
+
+      th {
+        background-color: #f3f4f6;
+        font-weight: 600;
+      }
+
+      .status-pill {
+        display: inline-block;
+        padding: 0.15rem 0.6rem;
+        border-radius: 999px;
+        font-size: 0.75rem;
+      }
+
+      .status-pending {
+        background-color: #fef3c7;
+        color: #92400e;
+      }
+
+      .status-approved {
+        background-color: #dcfce7;
+        color: #166534;
+      }
+
+      .status-rejected {
+        background-color: #fee2e2;
+        color: #991b1b;
+      }
+
+      .status-deferred {
+        background-color: #dbeafe;
+        color: #1d4ed8;
+      }
+
+      .row-approved {
+        background-color: #ecfdf3;
+      }
+
+      .actions {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+      }
+
+      .note-input {
+        width: 100%;
+        box-sizing: border-box;
+      }
+
+      @media (max-width: 900px) {
+        header {
+          padding-inline: 1.25rem;
+        }
+
+        main {
+          padding-inline: 1rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="brand">
+        NYU Access
+        <span>Approver Portal</span>
+      </div>
+      <div>Applicant form: /</div>
+    </header>
+
+    <main>
+      <div class="shell">
+        <h1>Requests assigned to approver</h1>
+        <p class="subtitle">
+          Enter your email to see requests where you are listed as an approver.
+        </p>
+
+        <form class="filters" method="get" action="{{ url_for('approver_portal') }}">
+          <input
+            type="email"
+            name="approver_email"
+            placeholder="your.name@nyu.edu"
+            value="{{ approver_email }}"
+            required
+          />
+          <input
+            type="text"
+            name="q"
+            placeholder="Search by requester/building/room/N#..."
+            value="{{ q }}"
+          />
+          <select name="status">
+            <option value="{{ RequestStatus.PENDING.value }}" {% if status==RequestStatus.PENDING.value %}selected{% endif %}>
+              Pending
+            </option>
+            <option value="{{ RequestStatus.APPROVED.value }}" {% if status==RequestStatus.APPROVED.value %}selected{% endif %}>
+              Approved
+            </option>
+            <option value="{{ RequestStatus.REJECTED.value }}" {% if status==RequestStatus.REJECTED.value %}selected{% endif %}>
+              Rejected
+            </option>
+            <option value="{{ RequestStatus.DEFERRED.value }}" {% if status==RequestStatus.DEFERRED.value %}selected{% endif %}>
+              Deferred
+            </option>
+            <option value="" {% if not status %}selected{% endif %}>All statuses</option>
+          </select>
+          <button type="submit">Load requests</button>
+        </form>
+
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Requester</th>
+              <th>Building / Room</th>
+              <th>Access Window / Type</th>
+              <th>Status</th>
+              <th>Created</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in requests %}
+            <tr class="{% if r.status == RequestStatus.APPROVED.value %}row-approved{% endif %}">
+              <td>#{{ r.id }}</td>
+              <td>
+                <div>{{ (r.first_name ~ " " ~ r.last_name).strip() if (r.first_name or r.last_name) else r.name }}</div>
+                <div style="font-size: 0.8rem; color: #6b7280">
+                  {{ r.applicant_email }}<br />
+                  NYU ID: {{ r.nyu_id }}<br />
+                  N#: {{ r.n_number }}<br />
+                  History count: {{ applicant_counts.get(r.applicant_email, 0) }}
+                </div>
+              </td>
+              <td>
+                <div>{{ r.building }}</div>
+                <div style="font-size: 0.8rem; color: #6b7280">
+                  Room(s): {{ r.room_numbers }}
+                </div>
+              </td>
+              <td style="font-size: 0.8rem">
+                <div>
+                  {{ r.access_start_date or "-" }} to {{ r.access_end_date or "-" }}
+                </div>
+                <div>Type: {{ r.access_type or "-" }}</div>
+              </td>
+              <td>
+                <span class="status-pill status-{{ r.status }}">{{ r.status }}</span>
+              </td>
+              <td style="font-size: 0.8rem">
+                {{ r.created_at.strftime("%Y-%m-%d %H:%M") if r.created_at else "" }}
+              </td>
+              <td>
+                {% if r.status == RequestStatus.PENDING.value %}
+                <div class="actions">
+                  <form
+                    method="post"
+                    action="{{ url_for('approve_request', req_id=r.id) }}"
+                  >
+                    <input
+                      type="hidden"
+                      name="approver_email"
+                      value="{{ approver_email }}"
+                    />
+                    <input
+                      type="text"
+                      name="note"
+                      placeholder="Note (optional)"
+                      class="note-input"
+                    />
+                    <button type="submit">Approve</button>
+                  </form>
+                  <form
+                    method="post"
+                    action="{{ url_for('reject_request', req_id=r.id) }}"
+                    onsubmit="return promptNote(this, 'Optional reason for rejection:')"
+                  >
+                    <input
+                      type="hidden"
+                      name="approver_email"
+                      value="{{ approver_email }}"
+                    />
+                    <input
+                      type="text"
+                      name="note"
+                      placeholder="Reason (optional)"
+                      class="note-input"
+                    />
+                    <button type="submit" style="background-color: #dc2626">
+                      Reject
+                    </button>
+                  </form>
+                  <form
+                    method="post"
+                    action="{{ url_for('defer_request', req_id=r.id) }}"
+                    onsubmit="return promptNote(this, 'Optional defer note:')"
+                  >
+                    <input
+                      type="hidden"
+                      name="approver_email"
+                      value="{{ approver_email }}"
+                    />
+                    <input
+                      type="text"
+                      name="note"
+                      placeholder="Defer note (optional)"
+                      class="note-input"
+                    />
+                    <button type="submit" style="background-color: #2563eb">
+                      Defer
+                    </button>
+                  </form>
+                </div>
+                {% else %} - {% endif %}
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="7" style="text-align: center; padding: 1rem">
+                {% if approver_email %}No matching requests for this approver.{% else %}
+                Enter an approver email to load requests.{% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </main>
+    <script>
+      function promptNote(form, message) {
+        const noteInput = form.querySelector('input[name="note"]');
+        const value = window.prompt(message, noteInput.value || "");
+        if (value === null) {
+          return false;
+        }
+        noteInput.value = value;
+        return true;
+      }
+    </script>
+  </body>
+</html>

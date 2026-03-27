@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>NYU Building Access Request</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      :root {
+        --accent: #57068c; /* NYU purple-ish */
+        --accent-soft: #f3e8ff;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        background: radial-gradient(circle at top left, #f5f3ff, #eff6ff);
+        color: #111827;
+      }
+
+      header {
+        background: #0f172a;
+        color: white;
+        padding: 0.9rem 2.5rem;
+        display: flex;
+        align-items: center;
+      }
+
+      header .brand {
+        font-weight: 600;
+        letter-spacing: 0.03em;
+      }
+
+      header .brand span {
+        opacity: 0.8;
+        font-weight: 400;
+        margin-left: 0.5rem;
+        font-size: 0.9rem;
+      }
+
+      main {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem 1.5rem;
+      }
+
+      .shell {
+        width: 100%;
+        max-width: 1220px;
+        display: grid;
+        grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+        gap: 1.75rem;
+        align-items: flex-start;
+      }
+
+      @media (max-width: 900px) {
+        header {
+          padding-inline: 1.25rem;
+        }
+        .shell {
+          grid-template-columns: minmax(0, 1fr);
+        }
+      }
+
+      .hero {
+        padding-right: 0.25rem;
+      }
+
+      .hero-eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.2rem 0.7rem;
+        border-radius: 999px;
+        background: rgba(87, 6, 140, 0.06);
+        color: var(--accent);
+        font-size: 0.75rem;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin-bottom: 0.85rem;
+      }
+
+      h1 {
+        margin: 0 0 0.6rem;
+        font-size: clamp(1.9rem, 3vw, 2.3rem);
+      }
+
+      .hero-subtitle {
+        font-size: 0.95rem;
+        color: #4b5563;
+        max-width: 24rem;
+      }
+
+      .hero-meta {
+        margin-top: 1.2rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.65rem;
+        font-size: 0.8rem;
+        color: #6b7280;
+      }
+
+      .card {
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(10px);
+        border-radius: 1rem;
+        padding: 1.75rem 1.9rem;
+        box-shadow: 0 18px 45px rgba(15, 23, 42, 0.16);
+        border: 1px solid rgba(148, 163, 184, 0.28);
+        width: fit-content;
+        max-width: 100%;
+        justify-self: end;
+      }
+
+      form {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 280px));
+        gap: 0.9rem 1rem;
+        width: fit-content;
+        max-width: 100%;
+      }
+
+      @media (max-width: 640px) {
+        form {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .field {
+        display: flex;
+        flex-direction: column;
+        gap: 0.3rem;
+        min-width: 0;
+      }
+
+      label {
+        font-size: 0.8rem;
+        font-weight: 500;
+        color: #374151;
+      }
+
+      input,
+      select {
+        width: 100%;
+        min-width: 0;
+        border-radius: 0.5rem;
+        border: 1px solid #d1d5db;
+        padding: 0.5rem 0.65rem;
+        font-size: 0.9rem;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease,
+          background-color 0.15s ease;
+        background: #f9fafb;
+      }
+
+      input:focus,
+      select:focus {
+        outline: none;
+        border-color: var(--accent);
+        background: white;
+        box-shadow: 0 0 0 1px rgba(87, 6, 140, 0.3);
+      }
+
+      button {
+        background: linear-gradient(135deg, var(--accent), #7c3aed);
+        border: none;
+        color: white;
+        padding: 0.7rem 1.5rem;
+        border-radius: 999px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.35rem;
+        margin-top: 0.4rem;
+        box-shadow: 0 14px 30px rgba(88, 28, 135, 0.35);
+      }
+
+      button:hover {
+        filter: brightness(1.05);
+      }
+
+      button:disabled {
+        background: #9ca3af;
+        box-shadow: none;
+        cursor: not-allowed;
+      }
+
+      .card-footer {
+        margin-top: 0.75rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+
+      #status {
+        font-size: 0.85rem;
+        color: #4b5563;
+      }
+
+      #resultTable {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.85rem;
+        border-radius: 0.75rem;
+        overflow: hidden;
+        border: 1px solid #e5e7eb;
+        background: white;
+      }
+
+      th,
+      td {
+        padding: 0.45rem 0.75rem;
+        border-bottom: 1px solid #e5e7eb;
+        text-align: left;
+      }
+
+      th {
+        background-color: #f9fafb;
+        font-weight: 600;
+      }
+
+      tfoot td {
+        font-size: 0.78rem;
+        color: #6b7280;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="brand">
+        NYU Access
+        <span>Building Access Request Portal</span>
+      </div>
+    </header>
+
+    <main>
+      <div class="shell">
+        <section class="hero">
+          <div class="hero-eyebrow">Building access</div>
+          <h1>Request access.</h1>
+          <p class="hero-subtitle">
+            Submit your building access request with the required identifiers
+            and routing to the correct PI and approvers. No PDFs, no manual
+            emailing.
+          </p>
+          <div class="hero-meta">
+            <span>• NYU ID + N number required</span>
+            <span>• Supports multiple approvers</span>
+            <span>• Email notifications to PI and approvers</span>
+          </div>
+        </section>
+
+        <section class="card">
+          <form id="requestForm">
+            <div class="field">
+              <label for="first_name">First name</label>
+              <input id="first_name" name="first_name" type="text" required />
+            </div>
+
+            <div class="field">
+              <label for="last_name">Last name</label>
+              <input id="last_name" name="last_name" type="text" required />
+            </div>
+
+            <div class="field">
+              <label for="applicant_email">Applicant email</label>
+              <input
+                id="applicant_email"
+                name="applicant_email"
+                type="email"
+                placeholder="name@nyu.edu"
+                required
+              />
+            </div>
+
+            <div class="field">
+              <label for="applicant_role">Applicant role</label>
+              <select id="applicant_role" name="applicant_role">
+                <option value="" selected>Select role (optional)</option>
+                <option value="staff">staff</option>
+                <option value="student">student</option>
+                <option value="visiting">visiting</option>
+                <option value="others">others</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="applicant_department">Applicant department</label>
+              <select
+                id="applicant_department"
+                name="applicant_department"
+                required
+              >
+                <option value="" selected disabled>Select applicant department</option>
+                <option value="Academic Affairs">Academic Affairs</option>
+                <option value="Admissions">Admissions</option>
+                <option value="AP">AP</option>
+                <option value="BME">BME</option>
+                <option value="Campus Operations">Campus Operations</option>
+                <option value="CBE">CBE</option>
+                <option value="CCS">CCS</option>
+                <option value="CPTS">CPTS</option>
+                <option value="CSE">CSE</option>
+                <option value="CUE">CUE</option>
+                <option value="CUSP">CUSP</option>
+                <option value="ECE">ECE</option>
+                <option value="EG">EG</option>
+                <option value="FAS">FAS</option>
+                <option value="FCM">FCM</option>
+                <option value="Finance">Finance</option>
+                <option value="FRE">FRE</option>
+                <option value="HR">HR</option>
+                <option value="IT">IT</option>
+                <option value="Lab Ops">Lab Ops</option>
+                <option value="Langone">Langone</option>
+                <option value="Leadership">Leadership</option>
+                <option value="Library">Library</option>
+                <option value="MAE">MAE</option>
+                <option value="MakerSpace">MakerSpace</option>
+                <option value="Nanofab">Nanofab</option>
+                <option value="NYU">NYU</option>
+                <option value="NYUAD">NYUAD</option>
+                <option value="NYUSH">NYUSH</option>
+                <option value="Office of Global Services">
+                  Office of Global Services
+                </option>
+                <option value="Office of Records and Registration">
+                  Office of Records and Registration
+                </option>
+                <option value="OGS">OGS</option>
+                <option value="Other">Other</option>
+                <option value="PhD Programs">PhD Programs</option>
+                <option value="REI">REI</option>
+                <option value="RLS">RLS</option>
+                <option value="SoM">SoM</option>
+                <option value="SoN">SoN</option>
+                <option value="TCS">TCS</option>
+                <option value="TMI">TMI</option>
+                <option value="TRIO Scholars Program">TRIO Scholars Program</option>
+                <option value="TSoE">TSoE</option>
+                <option value="UGA">UGA</option>
+                <option value="VIP">VIP</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="space_department">Space department</label>
+              <select id="space_department" name="space_department" required>
+                <option value="" selected disabled>Select space department</option>
+                <option value="Academic Affairs">Academic Affairs</option>
+                <option value="Admissions">Admissions</option>
+                <option value="AP">AP</option>
+                <option value="BME">BME</option>
+                <option value="Campus Operations">Campus Operations</option>
+                <option value="CBE">CBE</option>
+                <option value="CCS">CCS</option>
+                <option value="CPTS">CPTS</option>
+                <option value="CSE">CSE</option>
+                <option value="CUE">CUE</option>
+                <option value="CUSP">CUSP</option>
+                <option value="ECE">ECE</option>
+                <option value="EG">EG</option>
+                <option value="FAS">FAS</option>
+                <option value="FCM">FCM</option>
+                <option value="Finance">Finance</option>
+                <option value="FRE">FRE</option>
+                <option value="HR">HR</option>
+                <option value="IT">IT</option>
+                <option value="Lab Ops">Lab Ops</option>
+                <option value="Langone">Langone</option>
+                <option value="Leadership">Leadership</option>
+                <option value="Library">Library</option>
+                <option value="MAE">MAE</option>
+                <option value="MakerSpace">MakerSpace</option>
+                <option value="Nanofab">Nanofab</option>
+                <option value="NYU">NYU</option>
+                <option value="NYUAD">NYUAD</option>
+                <option value="NYUSH">NYUSH</option>
+                <option value="Office of Global Services">
+                  Office of Global Services
+                </option>
+                <option value="Office of Records and Registration">
+                  Office of Records and Registration
+                </option>
+                <option value="OGS">OGS</option>
+                <option value="Other">Other</option>
+                <option value="PhD Programs">PhD Programs</option>
+                <option value="REI">REI</option>
+                <option value="RLS">RLS</option>
+                <option value="SoM">SoM</option>
+                <option value="SoN">SoN</option>
+                <option value="TCS">TCS</option>
+                <option value="TMI">TMI</option>
+                <option value="TRIO Scholars Program">TRIO Scholars Program</option>
+                <option value="TSoE">TSoE</option>
+                <option value="UGA">UGA</option>
+                <option value="VIP">VIP</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="nyu_id">NYU ID #</label>
+              <input id="nyu_id" name="nyu_id" type="text" required />
+            </div>
+
+            <div class="field">
+              <label for="n_number">N number (N#)</label>
+              <input id="n_number" name="n_number" type="text" required />
+            </div>
+
+            <div class="field">
+              <label for="building">Building name</label>
+              <input
+                id="building"
+                name="building"
+                type="text"
+                placeholder="e.g. 370 Jay, 6 MetroTech"
+                required
+              />
+            </div>
+
+            <div class="field">
+              <label for="room_numbers">Room number(s)</label>
+              <input
+                id="room_numbers"
+                name="room_numbers"
+                type="text"
+                placeholder="618,618A"
+                required
+              />
+            </div>
+
+            <div class="field">
+              <label for="access_start_date">Access start date</label>
+              <input
+                id="access_start_date"
+                name="access_start_date"
+                type="date"
+                required
+              />
+            </div>
+
+            <div class="field">
+              <label for="access_end_date">Access end date</label>
+              <input
+                id="access_end_date"
+                name="access_end_date"
+                type="date"
+                required
+              />
+            </div>
+
+            <div class="field">
+              <label for="access_type">Access type</label>
+              <select id="access_type" name="access_type" required>
+                <option value="" selected disabled>Select access type</option>
+                <option value="24/7">24/7</option>
+                <option value="Business Hours (Mon-Fri, 9:00 AM-5:00 PM)">
+                  Business Hours (Mon-Fri, 9:00 AM-5:00 PM)
+                </option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="attachment">Attachment</label>
+              <input id="attachment" name="attachment" type="file" />
+            </div>
+
+            <div class="field">
+              <label for="pi_email">PI email</label>
+              <input
+                id="pi_email"
+                name="pi_email"
+                type="email"
+                placeholder="pi@example.com"
+              />
+            </div>
+
+            <div class="field">
+              <label for="approver_emails">Approver emails</label>
+              <input
+                id="approver_emails"
+                name="approver_emails"
+                type="text"
+                placeholder="approver1@nyu.edu, approver2@nyu.edu"
+              />
+            </div>
+
+            <div class="field">
+              <button id="submitBtn" type="submit">Submit access request</button>
+            </div>
+          </form>
+
+          <div class="card-footer">
+            <div id="status"></div>
+
+            <table id="resultTable" style="display: none">
+              <thead>
+                <tr>
+                  <th>Field</th>
+                  <th>Value</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <script>
+      const form = document.getElementById("requestForm");
+      const submitBtn = document.getElementById("submitBtn");
+      const statusEl = document.getElementById("status");
+      const table = document.getElementById("resultTable");
+      const tbody = table.querySelector("tbody");
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        submitBtn.disabled = true;
+        statusEl.textContent = "Submitting...";
+
+        const formData = new FormData(form);
+
+        try {
+          const response = await fetch("/submit", {
+            method: "POST",
+            body: formData,
+          });
+
+          if (!response.ok) {
+            throw new Error("Network response was not ok");
+          }
+
+          const result = await response.json();
+
+          if (!result.success) {
+            statusEl.textContent = "Submission failed.";
+            return;
+          }
+
+          const data = {
+            id: result.id,
+            first_name: form.first_name.value,
+            last_name: form.last_name.value,
+            applicant_email: form.applicant_email.value,
+            applicant_role: form.applicant_role.value,
+            applicant_department: form.applicant_department.value,
+            space_department: form.space_department.value,
+            nyu_id: form.nyu_id.value,
+            n_number: form.n_number.value,
+            building: form.building.value,
+            room_numbers: form.room_numbers.value,
+            access_start_date: form.access_start_date.value,
+            access_end_date: form.access_end_date.value,
+            access_type: form.access_type.value,
+            attachment: form.attachment.files[0]?.name || "",
+            pi_email: form.pi_email.value,
+            approver_emails: form.approver_emails.value,
+          };
+          tbody.innerHTML = "";
+
+          Object.entries(data).forEach(([key, value]) => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td>${key}</td>
+              <td>${value || "-"}</td>
+            `;
+            tbody.appendChild(tr);
+          });
+
+          table.style.display = "table";
+          statusEl.textContent =
+            "Submitted successfully. Below is your request.";
+        } catch (error) {
+          console.error(error);
+          statusEl.textContent =
+            "Error submitting request. Please try again later.";
+        } finally {
+          submitBtn.disabled = false;
+        }
+      });
+    </script>
+  </body>
+</html>
+
